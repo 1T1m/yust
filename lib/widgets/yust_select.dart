@@ -81,17 +81,21 @@ class YustSelect<T> extends StatelessWidget {
                 style: TextStyle(color: Colors.grey[600]),
               ),
             ),
-            if (suffixIcon != null)
-              Padding(
-                padding: const EdgeInsets.only(left: 8.0),
-                child: suffixIcon,
-              ),
           ],
         ),
         trailing: Container(
           constraints:
               BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 150),
-          child: Text(_valueCaption(value)),
+          child: Row(
+            children: [
+              Text(_valueCaption(value)),
+              if (suffixIcon != null)
+                Padding(
+                  padding: const EdgeInsets.only(left: 8.0),
+                  child: suffixIcon,
+                ),
+            ],
+          ),
         ),
         onTap: (onSelected == null || readOnly)
             ? null
