@@ -9,6 +9,7 @@ class YustSelect<T> extends StatelessWidget {
   final void Function(T)? onSelected;
   final YustInputStyle style;
   final Widget? prefixIcon;
+  final Widget? suffixIcon;
   final bool readOnly;
 
   const YustSelect({
@@ -20,6 +21,7 @@ class YustSelect<T> extends StatelessWidget {
     this.onSelected,
     this.style = YustInputStyle.normal,
     this.prefixIcon,
+    this.suffixIcon,
     this.readOnly = false,
   }) : super(key: key);
 
@@ -79,6 +81,11 @@ class YustSelect<T> extends StatelessWidget {
                 style: TextStyle(color: Colors.grey[600]),
               ),
             ),
+            if (suffixIcon != null)
+              Padding(
+                padding: const EdgeInsets.only(left: 8.0),
+                child: suffixIcon,
+              ),
           ],
         ),
         trailing: Container(
