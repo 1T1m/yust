@@ -29,6 +29,13 @@ abstract class YustDoc with YustSerializable {
   @JsonKey()
   String? envId;
 
+  static List<String> keysNotToExport = [
+    'createdBy',
+    'modifiedBy',
+    'userId',
+    'envId'
+  ];
+
   YustDoc({
     this.id = '',
     this.createdAt,
