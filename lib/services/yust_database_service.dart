@@ -92,17 +92,18 @@ class YustDatabaseService {
   }
 
   /// Returns null if no data exists.
-  T? transformDoc<T extends YustDoc>(
+  Future<T?> transformDoc<T extends YustDoc>(
     YustDocSetup<T> modelSetup,
     DocumentSnapshot snapshot,
-  ) {
+  ) async {
     if (snapshot.exists == false) {
       return null;
     }
     final data = snapshot.data();
     if (data is Map<String, dynamic>) {
       // Convert Timestamps to ISOStrings
-      final modifiedData = TraverseObject.traverseObject(data, (currentNode) {
+      final modifiedData =
+          await TraverseObject.traverseObject(data, (currentNode) async {
         // Convert Timestamp to Iso8601-String, as this is the format json_serializable expects
         if (currentNode.value is Timestamp) {
           return (currentNode.value as Timestamp)
@@ -212,7 +213,7 @@ class YustDatabaseService {
     }
     final jsonDoc = doc.toJson();
 
-    final modifiedDoc = prepareJsonForFirebase(
+    final modifiedDoc = await prepareJsonForFirebase(
       jsonDoc,
       removeNullValues: removeNullValues ?? modelSetup.removeNullValues,
     );
@@ -223,11 +224,12 @@ class YustDatabaseService {
   final iso8601Regex = RegExp(r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.?\d{0,9}');
 
   /// Converts DateTimes to Timestamps and removes null values (if not in List)
-  Map<String, dynamic> prepareJsonForFirebase(
+  Future<Map<String, dynamic>> prepareJsonForFirebase(
     Map<String, dynamic> obj, {
     bool removeNullValues = true,
-  }) {
-    final modifiedObj = TraverseObject.traverseObject(obj, (currentNode) {
+  }) async {
+    final modifiedObj =
+        await TraverseObject.traverseObject(obj, (currentNode) async {
       if (removeNullValues &&
           !currentNode.info.isInList &&
           currentNode.value == null) {
