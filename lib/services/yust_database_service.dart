@@ -62,9 +62,9 @@ class YustDatabaseService {
         orderByList: orderByList,
         filterList: filterList);
 
-    return query.snapshots().map((snapshot) {
-      return snapshot.docs
-          .map((docSnapshot) => transformDoc(modelSetup, docSnapshot))
+    return query.snapshots().asyncMap((snapshot) async {
+      return (await Future.wait(snapshot.docs
+              .map((docSnapshot) => transformDoc(modelSetup, docSnapshot))))
           .whereType<T>()
           .toList();
     });
@@ -80,13 +80,14 @@ class YustDatabaseService {
         orderByList: orderByList,
         filterList: filterList);
 
-    return query.get(GetOptions(source: Source.server)).then((snapshot) {
-      // print('Get docs once: ${modelSetup.collectionName}');
-      return snapshot.docs
-          .map((docSnapshot) => transformDoc(modelSetup, docSnapshot))
-          .whereType<T>()
-          .toList();
-    });
+    return query
+        .get(GetOptions(source: Source.server))
+        .asStream()
+        .expand((element) => element.docs)
+        .asyncMap((docSnapshot) => transformDoc(modelSetup, docSnapshot))
+        .where((doc) => doc != null)
+        .cast<T>()
+        .toList();
   }
 
   /// Returns null if no data exists.
@@ -124,10 +125,10 @@ class YustDatabaseService {
         .collection(_getCollectionPath(modelSetup))
         .doc(id)
         .snapshots()
-        .map((docSnapshot) => transformDoc(modelSetup, docSnapshot));
+        .asyncMap((docSnapshot) => transformDoc(modelSetup, docSnapshot));
   }
 
-  Future<T> getDocOnce<T extends YustDoc>(
+  Future<T?> getDocOnce<T extends YustDoc>(
     YustDocSetup<T> modelSetup,
     String id,
   ) {
@@ -135,7 +136,7 @@ class YustDatabaseService {
         .collection(_getCollectionPath(modelSetup))
         .doc(id)
         .get(GetOptions(source: Source.server))
-        .then((docSnapshot) => transformDoc<T>(modelSetup, docSnapshot)!);
+        .then((docSnapshot) => transformDoc<T>(modelSetup, docSnapshot));
   }
 
   /// Emits null events if no document was found.
@@ -149,7 +150,7 @@ class YustDatabaseService {
         filterList: filterList,
         orderByList: orderByList);
 
-    return query.snapshots().map<T?>((snapshot) {
+    return query.snapshots().asyncMap<T?>((snapshot) {
       if (snapshot.docs.isNotEmpty) {
         return transformDoc(modelSetup, snapshot.docs[0]);
       } else {
@@ -172,7 +173,7 @@ class YustDatabaseService {
     T? doc;
 
     if (snapshot.docs.isNotEmpty) {
-      doc = transformDoc(modelSetup, snapshot.docs[0]);
+      doc = await transformDoc(modelSetup, snapshot.docs[0]);
     }
     return doc;
   }

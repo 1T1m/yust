@@ -74,6 +74,8 @@ class YustAuthService {
     await userCredential.user!.updateEmail(email);
     final user = await Yust.databaseService
         .getDocOnce<YustUser>(Yust.userSetup, currUserId!);
+    if (user == null) return;
+
     user.email = email;
     await Yust.databaseService.saveDoc<YustUser>(Yust.userSetup, user);
   }

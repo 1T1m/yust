@@ -56,18 +56,16 @@ class YustPaginatedListView<T extends YustDoc> extends StatelessWidget {
       int index, BuildContext context, DocumentSnapshot documentSnapshot) {
     final item =
         Yust.databaseService.transformDoc(modelSetup, documentSnapshot);
-    if (item == null) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 100.0),
-        child: Center(
-          child: Text(
-            'Keine Daten vorhanden.\n',
-            textAlign: TextAlign.center,
-          ),
-        ),
-      );
-    } else {
-      return listItemBuilder(context, item, index);
-    }
+    return FutureBuilder<T?>(
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done &&
+            snapshot.hasData) {
+          return listItemBuilder(context, snapshot.data, index);
+        } else {
+          return SizedBox.shrink();
+        }
+      },
+      future: item,
+    );
   }
 }
